@@ -185,9 +185,13 @@ class C45:
                     print(indent + node.label + " > " + str(node.threshold) + " : ")
                     self.print_node(rightChild, indent + "	")
 
-    def use_tree(self):
-        pass
+    def use_tree(self, obj):
+        # Check obj
+        classObj = self.check_node(obj)
+        return classObj
 
+    def check_node(self, obj):
+        pass
 
 class Node:
 
