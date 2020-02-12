@@ -12,3 +12,8 @@ tree.print_tree()
 iris = [2.9, 1.0, 3.4, 4.2]
 classObj = tree.use_tree(iris)
 print(classObj)
+
+# golf = ["rainy", "hot", "high", "false"]
+# classObj = tree.use_tree(golf)
+# print(golf)
+# print(classObj)
