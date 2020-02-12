@@ -186,12 +186,25 @@ class C45:
                     self.print_node(rightChild, indent + "	")
 
     def use_tree(self, obj):
-        # Check obj
-        classObj = self.check_node(obj)
+        classObj = self.check_node(obj, self.tree)
         return classObj
 
-    def check_node(self, obj):
-        pass
+    def check_node(self, obj, node):
+        if node.isLeaf:
+            return node.label
+        else:
+            ind = self.attributes.index(node.label)
+            if node.threshold is None:
+                num = self.attrValues[node.label].index(obj[ind])
+                classObj = self.check_node(obj, node.children[num])
+            else:
+                num = obj[ind]
+                if num <= node.threshold:
+                    classObj = self.check_node(obj, node.children[0])
+                else:
+                    classObj = self.check_node(obj, node.children[1])
+            return classObj
+
 
 class Node:
 
