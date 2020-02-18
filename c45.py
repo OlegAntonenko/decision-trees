@@ -3,7 +3,8 @@ import math
 
 class C45:
 
-    def __init__(self):
+    def __init__(self, pathToData):
+        self.pathToData = pathToData
         self.classes = []
         self.attrValues = {}
         self.numAttributes = -1
@@ -11,8 +12,8 @@ class C45:
         self.data = []
         self.tree = None
 
-    def extract_data(self, pathToData):
-        with open(pathToData, 'r') as file:
+    def extract_data(self):
+        with open(self.pathToData, 'r') as file:
             data = file.read()
             data = data.split('\n')
             for i in range(1, len(data)):
