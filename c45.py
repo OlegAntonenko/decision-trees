@@ -1,12 +1,9 @@
 import math
-import sys
 
 
 class C45:
 
-    def __init__(self, pathToData, pathToNames):
-        self.pathToData = pathToData
-        self.pathToNames = pathToNames
+    def __init__(self):
         self.classes = []
         self.attrValues = {}
         self.numAttributes = -1
@@ -14,25 +11,27 @@ class C45:
         self.data = []
         self.tree = None
 
-    def extract_data(self):
-        with open(self.pathToNames, 'r') as file:
-            classes = file.readline()
-            self.classes = [x.strip() for x in classes.split(",")]  # list name of classes
-            for line in file:
-                try:
-                    [attribute, values] = [x.strip() for x in line.split(":")]  # lists of signs and view
-                except ValueError:
-                    print("Error: lists and his view split \":\" ")
-                    sys.exit()
-                values = [x.strip() for x in values.split(",")]
-                self.attrValues[attribute] = values  # dictionary {'signs': view}
-        self.numAttributes = len(self.attrValues.keys())  # number keys
-        self.attributes = list(self.attrValues.keys())  # list of keys
-        with open(self.pathToData, "r") as file:
-            for line in file:
-                row = [x.strip() for x in line.split(",")]
+    def extract_data(self, pathToData):
+        with open(pathToData, 'r') as file:
+            data = file.read()
+            data = data.split('\n')
+            for i in range(1, len(data)):
+                if data[i].split(' ')[0] != "@attribute":
+                    names = data[(i - 1):(i + 1)]
+                    data = data[(i + 3):]
+                    break
+            for i in range(len(data)):
+                row = [x.strip() for x in data[i].split(",")]
                 if row != [] or row != [""]:
                     self.data.append(row)  # add row in data
+            signs = names[1].split()[1:]
+            self.attributes = [x.replace(',', '') for x in signs]
+            self.numAttributes = len(self.attributes)
+            for i in self.attributes:
+                self.attrValues[i] = ["continuous"]
+            classes = names[0].split(' ')[2:]
+            for i in classes:
+                self.classes.append(i.strip('}{,'))
 
     def preprocess_data(self):
         for index in range(len(self.data)):
