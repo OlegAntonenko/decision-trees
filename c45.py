@@ -11,6 +11,7 @@ class C45:
         self.attributes = []
         self.data = []
         self.tree = None
+        self.gainArr = []
 
     def extract_data(self):
         with open(self.pathToData, 'r') as file:
@@ -90,6 +91,7 @@ class C45:
                     best_attribute = attribute
                     best_threshold = None
             else:
+                self.gainArr.append([])
                 curData.sort(key=lambda x: x[indexOfAttribute])
                 for j in range(0, len(curData)-1):
                     if curData[j][indexOfAttribute] != curData[j + 1][indexOfAttribute]:
@@ -102,6 +104,7 @@ class C45:
                             else:
                                 less.append(row)
                         e = self.gain(curData, [less, greater])
+                        self.gainArr[len(self.gainArr) - 1].append(e)
                         if e >= maxEnt:
                             splitted = [less, greater]
                             maxEnt = e
@@ -204,6 +207,9 @@ class C45:
                 else:
                     classObj = self.check_node(obj, node.children[1])
             return classObj
+
+    def get_gain_array(self):
+        return self.gainArr
 
 
 class Node:
