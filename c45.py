@@ -3,7 +3,7 @@ import math
 
 class C45:
 
-    def __init__(self, pathToData):
+    def __init__(self, pathToData, maxDepth = math.inf):
         self.pathToData = pathToData
         self.classes = []
         self.attrValues = {}
@@ -12,6 +12,7 @@ class C45:
         self.data = []
         self.tree = None
         self.gainArr = []
+        self.maxDepth = maxDepth
 
     def extract_data(self):
         with open(self.pathToData, 'r') as file:
@@ -52,13 +53,13 @@ class C45:
     def generate_tree(self):
         self.tree = self.recursive_generate_tree(self.data, self.attributes)
 
-    def recursive_generate_tree(self, curdata, curattributes):
+    def recursive_generate_tree(self, curdata, curattributes, depth=1):
         allsame = self.all_same_class(curdata)  # return name class if all data have same class
         if len(curdata) == 0:
             return Node(True, "Fail", None)  # fail
         elif allsame is not False:
             return Node(True, allsame, None)  # return a node with that class
-        elif len(curattributes) == 0:
+        elif len(curattributes) == 0 or self.maxDepth == depth:
             majclass = self.get_maj_class(curdata)  # return a node with the majority class
             return Node(True, majclass, None)
         else:
@@ -66,7 +67,8 @@ class C45:
             remainingAttributes = curattributes[:]
             remainingAttributes.remove(best)
             node = Node(False, best, best_threshold)
-            node.children = [self.recursive_generate_tree(subset, remainingAttributes) for subset in splitted]
+            depth += 1
+            node.children = [self.recursive_generate_tree(subset, remainingAttributes, depth) for subset in splitted]
             return node
 
     def split_attribute(self, curData, curAttributes):
