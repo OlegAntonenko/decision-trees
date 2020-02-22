@@ -35,13 +35,12 @@ for i in range(len(gainArray)):
     for j in range(len(gainArray[i])):
         numArray[len(numArray) - 1].append(j)
 
-for i in range(len(numArray)):
-    lineplot(numArray[i], gainArray[i], "num", "gain", "Change gain")
+# for i in range(len(numArray)):
+#     lineplot(numArray[i], gainArray[i], "num", "gain", "Change gain")
 
-iris = [2.9, 1.0, 3.4, 4.2]
-classObj = tree.use_tree(iris)
-print("Input: ", iris)
-print("Output: ", classObj)
+iris = [[2.9, 1.0, 3.4, 4.2, "hello, world"]]
+accuracy = tree.accuracy(iris)
+print("accuracy: ", accuracy)
 
 # banana = [1.14, -0.114]
 # classObj = tree.use_tree(banana)

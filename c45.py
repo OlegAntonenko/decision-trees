@@ -210,6 +210,14 @@ class C45:
                     classObj = self.check_node(obj, node.children[1])
             return classObj
 
+    def accuracy(self, data):
+        conformity = 0
+        for i in data:
+            classObj = self.use_tree(i[:-1])
+            if classObj == data[-1]:
+                conformity += 1
+        return conformity/len(data)
+
     def get_gain_array(self):
         return self.gainArr
 
