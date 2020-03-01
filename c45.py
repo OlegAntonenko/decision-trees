@@ -1,4 +1,5 @@
 import math
+import copy
 
 
 class C45:
@@ -14,19 +15,19 @@ class C45:
         self.gainArr = []
         self.maxDepth = maxDepth
 
-    def extract_data(self):
+    def extract_names(self):
         with open(self.pathToData, 'r') as file:
             data = file.read()
             data = data.split('\n')
             for i in range(1, len(data)):
                 if data[i].split(' ')[0] != "@attribute":
                     names = data[(i - 1):(i + 1)]
-                    data = data[(i + 3):]
+                    # data = data[(i + 3):]
                     break
-            for i in range(len(data)):
-                row = [x.strip() for x in data[i].split(",")]
-                if row != [] or row != [""]:
-                    self.data.append(row)  # add row in data
+            # for i in range(len(data)):
+            #     row = [x.strip() for x in data[i].split(",")]
+            #     if row != [] or row != [""]:
+            #         self.data.append(row)  # add row in data
             signs = names[1].split()[1:]
             self.attributes = [x.replace(',', '') for x in signs]
             self.numAttributes = len(self.attributes)
@@ -36,11 +37,15 @@ class C45:
             for i in classes:
                 self.classes.append(i.strip('}{,'))
 
-    def preprocess_data(self):
-        for index in range(len(self.data)):
+    def set_data(self, data):
+        self.data = copy.deepcopy(data)
+        self.preprocess_data(self.data)
+
+    def preprocess_data(self, data):
+        for index in range(len(data)):
             for attr_index in range(self.numAttributes):
                 if (not self.is_attr_discrete(self.attributes[attr_index])):  # if view is "continuous" then
-                    self.data[index][attr_index] = float(self.data[index][attr_index])  # convert string to float
+                    data[index][attr_index] = float(data[index][attr_index])  # convert string to float
 
     def is_attr_discrete(self, attribute):
         if attribute not in self.attributes:
