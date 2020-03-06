@@ -4,8 +4,8 @@ import copy
 
 class C45:
 
-    def __init__(self, pathToData, maxDepth = math.inf):
-        self.pathToData = pathToData
+    def __init__(self, maxDepth = math.inf):
+        self.pathToData = []
         self.classes = []
         self.attrValues = {}
         self.numAttributes = -1
@@ -15,7 +15,8 @@ class C45:
         self.gainArr = []
         self.maxDepth = maxDepth
 
-    def extract_names(self):
+    def extract_names(self, pathToData):
+        self.pathToData = pathToData
         with open(self.pathToData, 'r') as file:
             data = file.read()
             data = data.split('\n')
@@ -219,7 +220,7 @@ class C45:
         conformity = 0
         for i in data:
             classObj = self.use_tree(i[:-1])
-            if classObj == data[-1]:
+            if classObj == i[-1]:
                 conformity += 1
         return conformity/len(data)
 

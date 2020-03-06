@@ -20,20 +20,16 @@ class UseData:
                     self.data.append(row)  # add row in data
 
     def split_data(self):
+        trainingSample = []
+        testSample = []
         random.shuffle(self.data)
         partLen = int(len(self.data)/10)
         dataSplit = [self.data[partLen*k:partLen*(k+1)] for k in range(10)]
-        dataYX = self.cross_validation(dataSplit)
-        return dataYX
-
-    def cross_validation(self, dataSplit):
-        dataYX = []
-        for X in dataSplit:
-            dataYX.append([])
-            dataYX[len(dataYX) - 1].append(X)
-            sumY = []
-            for Y in dataSplit:
-                if Y != X:
-                    sumY += Y
-            dataYX[len(dataYX) - 1].append(sumY)
-        return dataYX
+        for i in range(len(dataSplit)):
+            testSample.append(dataSplit[i])
+            sumTraining = []
+            for j in range(len(dataSplit)):
+                if j != i:
+                    sumTraining += dataSplit[j]
+            trainingSample.append(sumTraining)
+        return trainingSample, testSample
