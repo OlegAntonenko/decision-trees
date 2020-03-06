@@ -19,7 +19,7 @@ class UseData:
                 if row != [] or row != [""]:
                     self.data.append(row)  # add row in data
 
-    def split_data(self):
+    def cross_validation(self):
         trainingSample = []
         testSample = []
         random.shuffle(self.data)
@@ -33,3 +33,6 @@ class UseData:
                     sumTraining += dataSplit[j]
             trainingSample.append(sumTraining)
         return trainingSample, testSample
+
+    def get_data(self):
+        return self.data

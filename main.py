@@ -24,8 +24,9 @@ tree = C45()
 tree.extract_names("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 dataWorker = UseData()
 dataWorker.extract_data("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
-trainingSample, testSample = dataWorker.split_data()
+trainingSample, testSample = dataWorker.cross_validation()
 
+# Count average accuracy
 listAccuracy = []
 for i, j in zip(trainingSample, testSample):
     tree.set_data(i)

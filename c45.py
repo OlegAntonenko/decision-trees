@@ -23,12 +23,7 @@ class C45:
             for i in range(1, len(data)):
                 if data[i].split(' ')[0] != "@attribute":
                     names = data[(i - 1):(i + 1)]
-                    # data = data[(i + 3):]
                     break
-            # for i in range(len(data)):
-            #     row = [x.strip() for x in data[i].split(",")]
-            #     if row != [] or row != [""]:
-            #         self.data.append(row)  # add row in data
             signs = names[1].split()[1:]
             self.attributes = [x.replace(',', '') for x in signs]
             self.numAttributes = len(self.attributes)
