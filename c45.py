@@ -17,21 +17,25 @@ class C45:
 
     def extract_names(self, pathToData):
         self.pathToData = pathToData
+        # attr = []
         with open(self.pathToData, 'r') as file:
             data = file.read()
             data = data.split('\n')
             for i in range(1, len(data)):
                 if data[i].split(' ')[0] != "@attribute":
-                    names = data[(i - 1):(i + 1)]
                     break
-            signs = names[1].split()[1:]
-            self.attributes = [x.replace(',', '') for x in signs]
+                if data[i + 1].split(' ')[0] == "@attribute":
+                    self.attributes.append(data[i].split(' ')[1])
+                    if data[i][-1] == ']':
+                        self.attrValues[self.attributes[len(self.attributes) - 1]] = ["continuous"]
+                    else:
+                        values = [i.strip('{}') for i in data[i].split(' ')[-1].split(',')]
+                        self.attrValues[self.attributes[len(self.attributes) - 1]] = values
+                else:
+                    classes = data[i].split(' ')[2:]
+                    for i in classes:
+                        self.classes.append(i.strip('}{,'))
             self.numAttributes = len(self.attributes)
-            for i in self.attributes:
-                self.attrValues[i] = ["continuous"]
-            classes = names[0].split(' ')[2:]
-            for i in classes:
-                self.classes.append(i.strip('}{,'))
 
     def set_data(self, data):
         self.data = copy.deepcopy(data)
@@ -55,16 +59,16 @@ class C45:
         self.tree = self.recursive_generate_tree(self.data, self.attributes)
 
     def recursive_generate_tree(self, curdata, curattributes, depth=1):
-        allsame = self.all_same_class(curdata)  # return name class if all data have same class
         if len(curdata) == 0:
             return Node(True, "Fail", None)  # fail
-        elif allsame is not False:
-            return Node(True, allsame, None)  # return a node with that class
+        elif self.all_same_class(curdata) is not False:
+            return Node(True, self.all_same_class(curdata), None)  # return a node with that class
         elif len(curattributes) == 0 or self.maxDepth == depth:
             majclass = self.get_maj_class(curdata)  # return a node with the majority class
             return Node(True, majclass, None)
         else:
             (best, best_threshold, splitted) = self.split_attribute(curdata, curattributes)
+            # (best, best_threshold, splitted) = self.stochastics(curdata, curattributes)
             remainingAttributes = curattributes[:]
             remainingAttributes.remove(best)
             node = Node(False, best, best_threshold)
@@ -113,6 +117,26 @@ class C45:
                             maxEnt = e
                             best_attribute = attribute
                             best_threshold = threshold
+        return (best_attribute, best_threshold, splitted)
+
+    def stochastics(self, curData, curAttributes):
+        splitted = []
+        # maxEnt = -math.inf
+        arrayGain = [0]
+        best_attribute = -1
+        best_threshold = None  # None for discrete attributes, threshold value for continuous attributes
+        for attribute in curAttributes:
+            indexOfAttribute = self.attributes.index(attribute)
+            if self.is_attr_discrete(attribute):
+                valuesForAttribute = self.attrValues[attribute]
+                subsets = [[] for a in valuesForAttribute]
+                for row in curData:
+                    for index in range(len(valuesForAttribute)):
+                        if row[indexOfAttribute] == valuesForAttribute[index]:
+                            subsets[index].append(row)
+                            break
+                e = self.gain(curData, subsets)
+                arrayGain.append(arrayGain[len(arrayGain) - 1] + e)
         return (best_attribute, best_threshold, splitted)
 
     def gain(self, unionSet, subsets):
