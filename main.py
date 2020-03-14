@@ -1,7 +1,8 @@
 import time
 import matplotlib.pyplot as plt
 from c45 import C45
-from UseData import UseData
+from usedata import UseData
+from genprogram import GP
 
 
 def lineplot(x_data, y_data, x_label="", y_label="", title=""):
@@ -20,26 +21,26 @@ def lineplot(x_data, y_data, x_label="", y_label="", title=""):
     plt.show()
 
 
-tree = C45()
-tree.extract_names("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
-dataWorker = UseData()
-dataWorker.extract_data("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
-trainingSample, testSample = dataWorker.cross_validation()
+# tree = C45()
+# tree.extract_names("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
+# dataWorker = UseData()
+# dataWorker.extract_data("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
+# trainingSample, testSample = dataWorker.cross_validation()
 
 # Count average accuracy
-listAccuracy = []
-for i, j in zip(trainingSample, testSample):
-    tree.set_data(i)
-    start = time.clock()
-    tree.generate_tree()
-    tree.print_tree()
-    end = time.clock()
-    print("Time generate tree: ", end - start, end="\n\n")
-    tree.preprocess_data(j)  # test
-    listAccuracy.append(tree.accuracy(j))
-
-averageAccuracy = sum(listAccuracy)/len(listAccuracy)
-print("Average accuracy: ", averageAccuracy)
+# listAccuracy = []
+# for i, j in zip(trainingSample, testSample):
+#     tree.set_data(i)
+#     start = time.clock()
+#     tree.generate_tree()
+#     tree.print_tree()
+#     end = time.clock()
+#     print("Time generate tree: ", end - start, end="\n\n")
+#     tree.preprocess_data(j)  # test
+#     listAccuracy.append(tree.accuracy(j))
+#
+# averageAccuracy = sum(listAccuracy)/len(listAccuracy)
+# print("Average accuracy: ", averageAccuracy)
 
 # gainArray = tree.get_gain_array()
 # numArray = []
@@ -49,3 +50,6 @@ print("Average accuracy: ", averageAccuracy)
 #         numArray[len(numArray) - 1].append(j)
 # for i in range(len(numArray)):
 #     lineplot(numArray[i], gainArray[i], "num", "gain", "Change gain")
+
+genProgramm = GP(10)
+genProgramm.generate_random_forest("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")

@@ -278,6 +278,9 @@ class C45:
     def get_gain_array(self):
         return self.gainArr
 
+    def get_tree(self):
+        return self.tree
+
 
 class Node:
 
