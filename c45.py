@@ -1,5 +1,6 @@
 import math
 import copy
+import random
 
 
 class C45:
@@ -68,7 +69,7 @@ class C45:
             return Node(True, majclass, None)
         else:
             (best, best_threshold, splitted) = self.split_attribute(curdata, curattributes)
-            # (best, best_threshold, splitted) = self.stochastics(curdata, curattributes)
+            # (best, best_threshold, splitted) = self.split_attribute_stochastic(curdata, curattributes)
             remainingAttributes = curattributes[:]
             remainingAttributes.remove(best)
             node = Node(False, best, best_threshold)
@@ -98,7 +99,7 @@ class C45:
                     best_attribute = attribute
                     best_threshold = None
             else:
-                self.gainArr.append([])
+                # self.gainArr.append([])
                 curData.sort(key=lambda x: x[indexOfAttribute])
                 for j in range(0, len(curData)-1):
                     if curData[j][indexOfAttribute] != curData[j + 1][indexOfAttribute]:
@@ -111,7 +112,7 @@ class C45:
                             else:
                                 less.append(row)
                         e = self.gain(curData, [less, greater])
-                        self.gainArr[len(self.gainArr) - 1].append(e)
+                        # self.gainArr[len(self.gainArr) - 1].append(e)
                         if e >= maxEnt:
                             splitted = [less, greater]
                             maxEnt = e
@@ -119,10 +120,12 @@ class C45:
                             best_threshold = threshold
         return (best_attribute, best_threshold, splitted)
 
-    def stochastics(self, curData, curAttributes):
-        splitted = []
-        # maxEnt = -math.inf
+    def split_attribute_stochastic(self, curData, curAttributes):
+        arraySubsets = []
         arrayGain = [0]
+        arrayThreshold = []
+        splitted = []
+        maxEnt = -math.inf
         best_attribute = -1
         best_threshold = None  # None for discrete attributes, threshold value for continuous attributes
         for attribute in curAttributes:
@@ -136,7 +139,36 @@ class C45:
                             subsets[index].append(row)
                             break
                 e = self.gain(curData, subsets)
+                arraySubsets.append(subsets)
                 arrayGain.append(arrayGain[len(arrayGain) - 1] + e)
+                arrayThreshold.append(None)
+            else:
+                curData.sort(key=lambda x: x[indexOfAttribute])
+                for j in range(0, len(curData)-1):
+                    if curData[j][indexOfAttribute] != curData[j + 1][indexOfAttribute]:
+                        threshold = (curData[j][indexOfAttribute] + curData[j + 1][indexOfAttribute]) / 2
+                        less = []
+                        greater = []
+                        for row in curData:
+                            if (row[indexOfAttribute] > threshold):
+                                greater.append(row)
+                            else:
+                                less.append(row)
+                        e = self.gain(curData, [less, greater])
+                        if e >= maxEnt:
+                            splitted = [less, greater]
+                            maxEnt = e
+                            best_threshold = threshold
+                arraySubsets.append(splitted)
+                arrayGain.append(arrayGain[len(arrayGain) - 1] + maxEnt)
+                arrayThreshold.append(best_threshold)
+        rnd = random.random() * arrayGain[-1]
+        for gainInd in range(1, len(arrayGain)):  # choose attribute with rnd
+            if arrayGain[gainInd - 1] < rnd <= arrayGain[gainInd]:
+                best_attribute = curAttributes[gainInd - 1]
+                splitted = arraySubsets[gainInd - 1]
+                best_threshold = arrayThreshold[gainInd - 1]
+                break
         return (best_attribute, best_threshold, splitted)
 
     def gain(self, unionSet, subsets):
