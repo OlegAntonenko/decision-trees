@@ -68,8 +68,8 @@ class C45:
             majclass = self.get_maj_class(curdata)  # return a node with the majority class
             return Node(True, majclass, None)
         else:
-            (best, best_threshold, splitted) = self.split_attribute(curdata, curattributes)
-            # (best, best_threshold, splitted) = self.split_attribute_stochastic(curdata, curattributes)
+            # (best, best_threshold, splitted) = self.split_attribute(curdata, curattributes)
+            (best, best_threshold, splitted) = self.split_attribute_stochastic(curdata, curattributes)
             remainingAttributes = curattributes[:]
             remainingAttributes.remove(best)
             node = Node(False, best, best_threshold)
@@ -280,6 +280,15 @@ class C45:
 
     def get_tree(self):
         return self.tree
+
+    def set_tree(self, tree):
+        self.tree = tree
+
+    def get_attributes(self):
+        return self.attributes
+
+    def get_classes(self):
+        return self.classes
 
 
 class Node:

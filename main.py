@@ -53,3 +53,6 @@ def lineplot(x_data, y_data, x_label="", y_label="", title=""):
 
 genProgramm = GP(10)
 genProgramm.generate_random_forest("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
+classObj = [6.1, 3.5, 1.4, 0.2]
+classObj = genProgramm.use_forest(classObj)
+print(classObj)
