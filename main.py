@@ -1,8 +1,25 @@
 import time
+import random
 import matplotlib.pyplot as plt
 from c45 import C45
-from usedata import UseData
 from genprogram import GP
+# from usedata import UseData
+
+
+def cross_validation(data):
+    trainingSample = []
+    testSample = []
+    random.shuffle(data)
+    partLen = int(len(data) / 10)
+    dataSplit = [data[partLen * k:partLen * (k + 1)] for k in range(10)]
+    for i in range(len(dataSplit)):
+        testSample.append(dataSplit[i])
+        sumTraining = []
+        for j in range(len(dataSplit)):
+            if j != i:
+                sumTraining += dataSplit[j]
+        trainingSample.append(sumTraining)
+    return trainingSample, testSample
 
 
 def lineplot(x_data, y_data, x_label="", y_label="", title=""):
@@ -21,26 +38,24 @@ def lineplot(x_data, y_data, x_label="", y_label="", title=""):
     plt.show()
 
 
-# tree = C45()
-# tree.extract_names("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
-# dataWorker = UseData()
-# dataWorker.extract_data("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
-# trainingSample, testSample = dataWorker.cross_validation()
+tree = C45(3)
+tree.extract_names("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 
-# Count average accuracy
-# listAccuracy = []
-# for i, j in zip(trainingSample, testSample):
-#     tree.set_data(i)
-#     start = time.clock()
-#     tree.generate_tree()
-#     tree.print_tree()
-#     end = time.clock()
-#     print("Time generate tree: ", end - start, end="\n\n")
-#     tree.preprocess_data(j)  # test
-#     listAccuracy.append(tree.accuracy(j))
-#
-# averageAccuracy = sum(listAccuracy)/len(listAccuracy)
-# print("Average accuracy: ", averageAccuracy)
+trainingSample, testSample = cross_validation(tree.get_data())
+
+# Count average accuracy tree
+listAccuracy = []
+for i, j in zip(trainingSample, testSample):
+    tree.set_data(i)
+    start = time.clock()
+    tree.generate_tree()
+    tree.print_tree()
+    end = time.clock()
+    print("Time generate tree: ", end - start, end="\n\n")
+    tree.preprocess_data(j)
+    listAccuracy.append(tree.accuracy(j))
+averageAccuracy = sum(listAccuracy)/len(listAccuracy)
+print("Average accuracy tree: ", round(averageAccuracy, 2), end="\n\n")
 
 # gainArray = tree.get_gain_array()
 # numArray = []
@@ -51,8 +66,13 @@ def lineplot(x_data, y_data, x_label="", y_label="", title=""):
 # for i in range(len(numArray)):
 #     lineplot(numArray[i], gainArray[i], "num", "gain", "Change gain")
 
-genProgramm = GP(10)
-genProgramm.generate_random_forest("C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
-classObj = [6.1, 3.5, 1.4, 0.2]
-classObj = genProgramm.use_forest(classObj)
-print(classObj)
+genProgramm = GP(10, "C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
+
+# Count average accuracy forest
+listAccuracy = []
+for i, j in zip(trainingSample, testSample):
+    genProgramm.generate_random_forest(i)
+    listAccuracy.append(genProgramm.accuracy_forest(j))
+    print("Accuracy forest: " + str(round(listAccuracy[len(listAccuracy) - 1], 2)), end="\n\n")
+averageAccuracy = sum(listAccuracy)/len(listAccuracy)
+print("Average accuracy forest: ", averageAccuracy, end="\n\n")
