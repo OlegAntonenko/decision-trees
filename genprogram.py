@@ -1,27 +1,21 @@
 from c45 import C45
 from usedata import UseData
-from collections import Counter
 
 
 class GP:
 
-    def __init__(self, sizeForest):
+    def __init__(self, sizeForest, pathToData):
         self.forest = []
-        self.pathToData = []
+        self.pathToData = pathToData
         self.sizeForest = sizeForest
 
-    def generate_random_forest(self, pathToData):
-        self.pathToData = pathToData
-        tree = C45(3)
+    def generate_random_forest(self, data):
+        tree = C45(maxDepth=5)
         tree.extract_names(self.pathToData)
-        dataWorker = UseData()
-        dataWorker.extract_data(self.pathToData)
-        data = dataWorker.get_data()
         tree.set_data(data)
         for i in range(self.sizeForest):
             tree.generate_tree()
             self.forest.append(tree.get_tree())
-        print(self.forest)
 
     def use_forest(self, obj):
         arrayAnswer = []
@@ -36,3 +30,14 @@ class GP:
             countObj[classes.index(i)] += 1
         classObj = classes[countObj.index(max(countObj))]
         return classObj
+
+    def accuracy_forest(self, data):
+        conformity = 0
+        for i in data:
+            classObj = self.use_forest(i[:-1])
+            if classObj == i[-1]:
+                conformity += 1
+        return conformity / len(data)
+
+    def mutation(self):
+        pass
