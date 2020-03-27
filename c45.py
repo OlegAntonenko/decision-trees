@@ -16,9 +16,30 @@ class C45:
         self.gainArr = []
         self.maxDepth = maxDepth
 
+    # def get_gain_array(self):
+    #     return self.gainArr
+
+    def set_tree(self, tree):
+        self.tree = tree
+
+    def get_tree(self):
+        return self.tree
+
+    def get_attributes(self):
+        return self.attributes
+
+    def get_classes(self):
+        return self.classes
+
+    def set_data(self, data):
+        self.data = copy.deepcopy(data)
+        self.preprocess_data(self.data)
+
+    def get_data(self):
+        return self.data
+
     def extract_names(self, pathToData):
         self.pathToData = pathToData
-        # attr = []
         with open(self.pathToData, 'r') as file:
             data = file.read()
             data = data.split('\n')
@@ -38,9 +59,20 @@ class C45:
                         self.classes.append(i.strip('}{,'))
             self.numAttributes = len(self.attributes)
 
-    def set_data(self, data):
-        self.data = copy.deepcopy(data)
-        self.preprocess_data(self.data)
+    def extract_data(self, pathToData):
+        self.pathToData = pathToData
+        with open(pathToData, 'r') as file:
+            data = file.read()
+            data = data.split('\n')
+            for i in range(1, len(data)):
+                if data[i].split(' ')[0] != "@attribute":
+                    data = data[(i + 3):]
+                    break
+            for i in range(len(data)):
+                row = [x.strip() for x in data[i].split(",")]
+                if row != [] or row != [""]:
+                    self.data.append(row)  # add row in data
+            self.preprocess_data(self.data)
 
     def preprocess_data(self, data):
         for index in range(len(data)):
@@ -274,21 +306,6 @@ class C45:
             if classObj == i[-1]:
                 conformity += 1
         return conformity/len(data)
-
-    def get_gain_array(self):
-        return self.gainArr
-
-    def get_tree(self):
-        return self.tree
-
-    def set_tree(self, tree):
-        self.tree = tree
-
-    def get_attributes(self):
-        return self.attributes
-
-    def get_classes(self):
-        return self.classes
 
 
 class Node:
