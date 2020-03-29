@@ -10,7 +10,7 @@ from sklearn.tree import export_text
 # from usedata import UseData
 
 
-def cross_validation(data):
+def split_data(data):
     trainingSample = []
     testSample = []
     random.shuffle(data)
@@ -42,25 +42,42 @@ def lineplot(x_data, y_data, x_label="", y_label="", title=""):
     plt.show()
 
 
-tree = C45(maxDepth=5)
-tree.extract_names(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\car.dat")
-tree.extract_data(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\car.dat")
+tree = C45(maxDepth=4)
+tree.extract_names(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
+tree.extract_data(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 
-trainingSample, testSample = cross_validation(tree.get_data())
+trainingSample, testSample = split_data(tree.get_data())
 
 # Count average accuracy tree
 listAccuracy = []
+listAccuracySklearn = []
+num = 0
 for i, j in zip(trainingSample, testSample):
+    num += 1
     tree.set_data(i)
     start = time.clock()
     tree.generate_tree()
-    tree.print_tree()
     end = time.clock()
-    print("Time generate tree: ", end - start, end="\n\n")
+    print("Time generate tree " + str(num) + " : ", end - start)
     tree.preprocess_data(j)
     listAccuracy.append(tree.accuracy(j))
+
+    # Use sklearn
+    estimator = DecisionTreeClassifier(random_state=0)
+    X_train = [x[:-1] for x in i]
+    Y_train = [y[-1] for y in i]
+    X_test = [x[:-1] for x in j]
+    Y_test = [y[-1] for y in j]
+    start = time.clock()
+    estimator.fit(X_train, Y_train)  # training decision tree
+    end = time.clock()
+    print("Time generate tree with sklearn " + str(num) + " : ", end - start, end="\n\n")
+    listAccuracySklearn.append(estimator.score(X_test, Y_test))  # accuracy tree
+
 averageAccuracy = sum(listAccuracy)/len(listAccuracy)
-print("Average accuracy tree: ", round(averageAccuracy, 2), end="\n\n")
+averageAccuracySklearn = sum(listAccuracySklearn)/len(listAccuracySklearn)
+print("Average accuracy tree: ", round(averageAccuracy, 2))
+print("Average accuracy tree with sklearn: ", round(averageAccuracySklearn, 2), end="\n\n")
 
 # gainArray = tree.get_gain_array()
 # numArray = []
@@ -71,7 +88,7 @@ print("Average accuracy tree: ", round(averageAccuracy, 2), end="\n\n")
 # for i in range(len(numArray)):
 #     lineplot(numArray[i], gainArray[i], "num", "gain", "Change gain")
 
-genProgramm = GP(sizeForest=10, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\car.dat")
+genProgramm = GP(sizeForest=10, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 
 # Count average accuracy forest
 listAccuracy = []
@@ -80,16 +97,4 @@ for i, j in zip(trainingSample, testSample):
     listAccuracy.append(genProgramm.accuracy_forest(j))
     print("Accuracy forest: " + str(round(listAccuracy[len(listAccuracy) - 1], 2)), end="\n\n")
 averageAccuracy = sum(listAccuracy)/len(listAccuracy)
-print("Average accuracy forest: ", averageAccuracy, end="\n\n")
-
-# Use sklearn
-clf = DecisionTreeClassifier(random_state=0)
-iris = load_iris()
-X = iris.data
-Y = iris.target
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=1)  # 70% training and 30% test
-clf = clf.fit(X_train, Y_train)
-r = export_text(clf, feature_names=iris['feature_names'])
-print(r)
-sample_one_pred = int(clf.predict([[5, 5, 1, 3]]))
-print(sample_one_pred)
+print("Average accuracy forest: ", averageAccuracy)
