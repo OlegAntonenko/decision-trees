@@ -3,10 +3,7 @@ import random
 import matplotlib.pyplot as plt
 from c45 import C45
 from genprogram import GP
-from sklearn.model_selection import train_test_split  # Import train_test_split function
-from sklearn.datasets import load_iris
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree import export_text
 # from usedata import UseData
 
 
@@ -42,7 +39,7 @@ def lineplot(x_data, y_data, x_label="", y_label="", title=""):
     plt.show()
 
 
-tree = C45(maxDepth=4)
+tree = C45(maxDepth=4, split="random")
 tree.extract_names(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 tree.extract_data(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 
@@ -59,11 +56,12 @@ for i, j in zip(trainingSample, testSample):
     tree.generate_tree()
     end = time.clock()
     print("Time generate tree " + str(num) + " : ", end - start)
+    tree.print_tree()
     tree.preprocess_data(j)
     listAccuracy.append(tree.accuracy(j))
 
     # Use sklearn
-    estimator = DecisionTreeClassifier(random_state=0)
+    estimator = DecisionTreeClassifier(criterion="entropy", random_state=0, max_depth=4, splitter="random")
     X_train = [x[:-1] for x in i]
     Y_train = [y[-1] for y in i]
     X_test = [x[:-1] for x in j]
@@ -77,7 +75,7 @@ for i, j in zip(trainingSample, testSample):
 averageAccuracy = sum(listAccuracy)/len(listAccuracy)
 averageAccuracySklearn = sum(listAccuracySklearn)/len(listAccuracySklearn)
 print("Average accuracy tree: ", round(averageAccuracy, 2))
-print("Average accuracy tree with sklearn: ", round(averageAccuracySklearn, 2), end="\n\n")
+print("Average accuracy tree with sklearn: ", round(averageAccuracySklearn, 2))
 
 # gainArray = tree.get_gain_array()
 # numArray = []
@@ -95,6 +93,5 @@ listAccuracy = []
 for i, j in zip(trainingSample, testSample):
     genProgramm.generate_random_forest(i)
     listAccuracy.append(genProgramm.accuracy_forest(j))
-    print("Accuracy forest: " + str(round(listAccuracy[len(listAccuracy) - 1], 2)), end="\n\n")
 averageAccuracy = sum(listAccuracy)/len(listAccuracy)
 print("Average accuracy forest: ", averageAccuracy)

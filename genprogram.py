@@ -10,7 +10,8 @@ class GP:
         self.sizeForest = sizeForest
 
     def generate_random_forest(self, data):
-        tree = C45(maxDepth=5)
+        self.forest = []
+        tree = C45(maxDepth=4, split="random")
         tree.extract_names(self.pathToData)
         tree.set_data(data)
         for i in range(self.sizeForest):
@@ -39,5 +40,14 @@ class GP:
                 conformity += 1
         return conformity / len(data)
 
-    def mutation(self):
-        pass
+    def mutation_forest(self):
+        tree = C45()
+        tree.extract_names(self.pathToData)
+        for t in self.forest:
+            tree.set_tree(t)
+            print("before")
+            tree.print_tree()
+            tree.mutation()
+            print("after")
+            tree.print_tree()
+            print()

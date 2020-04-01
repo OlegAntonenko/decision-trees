@@ -5,7 +5,7 @@ import random
 
 class C45:
 
-    def __init__(self, maxDepth = math.inf):
+    def __init__(self, maxDepth=math.inf, split="best"):
         self.pathToData = []
         self.classes = []
         self.attrValues = {}
@@ -15,9 +15,7 @@ class C45:
         self.tree = None
         self.gainArr = []
         self.maxDepth = maxDepth
-
-    # def get_gain_array(self):
-    #     return self.gainArr
+        self.split = split
 
     def set_tree(self, tree):
         self.tree = tree
@@ -100,8 +98,10 @@ class C45:
             majclass = self.get_maj_class(curdata)  # return a node with the majority class
             return Node(True, majclass, None)
         else:
-            # (best, best_threshold, splitted) = self.split_attribute(curdata, curattributes)
-            (best, best_threshold, splitted) = self.split_attribute_stochastic(curdata, curattributes)
+            if self.split == "best":
+                (best, best_threshold, splitted) = self.split_attribute(curdata, curattributes)
+            elif self.split == "random":
+                (best, best_threshold, splitted) = self.split_attribute_random(curdata, curattributes)
             remainingAttributes = curattributes[:]
             remainingAttributes.remove(best)
             node = Node(False, best, best_threshold)
@@ -131,7 +131,6 @@ class C45:
                     best_attribute = attribute
                     best_threshold = None
             else:
-                # self.gainArr.append([])
                 curData.sort(key=lambda x: x[indexOfAttribute])
                 for j in range(0, len(curData)-1):
                     if curData[j][indexOfAttribute] != curData[j + 1][indexOfAttribute]:
@@ -144,7 +143,6 @@ class C45:
                             else:
                                 less.append(row)
                         e = self.gain(curData, [less, greater])
-                        # self.gainArr[len(self.gainArr) - 1].append(e)
                         if e >= maxEnt:
                             splitted = [less, greater]
                             maxEnt = e
@@ -152,7 +150,7 @@ class C45:
                             best_threshold = threshold
         return (best_attribute, best_threshold, splitted)
 
-    def split_attribute_stochastic(self, curData, curAttributes):
+    def split_attribute_random(self, curData, curAttributes):
         arraySubsets = []
         arrayGain = [0]
         arrayThreshold = []
@@ -306,6 +304,17 @@ class C45:
             if classObj == i[-1]:
                 conformity += 1
         return conformity/len(data)
+
+    def mutation(self):
+        self.mutation_check_node(self.tree)
+
+    def mutation_check_node(self, node):
+        if not node.isLeaf:
+            if random.random() <= 1/10:
+                attributes = copy.copy(self.attributes)
+                attributes.remove(node.label)
+                node.label = random.choice(attributes)
+            [self.mutation_check_node(nodeChild) for nodeChild in node.children]
 
 
 class Node:
