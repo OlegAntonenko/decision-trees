@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from c45 import C45
 from genprogram import GP
 from sklearn.tree import DecisionTreeClassifier
-# from usedata import UseData
 
 
 def split_data(data):
@@ -76,15 +75,6 @@ averageAccuracy = sum(listAccuracy)/len(listAccuracy)
 averageAccuracySklearn = sum(listAccuracySklearn)/len(listAccuracySklearn)
 print("Average accuracy tree: ", round(averageAccuracy, 2))
 print("Average accuracy tree with sklearn: ", round(averageAccuracySklearn, 2))
-
-# gainArray = tree.get_gain_array()
-# numArray = []
-# for i in range(len(gainArray)):
-#     numArray.append([])
-#     for j in range(len(gainArray[i])):
-#         numArray[len(numArray) - 1].append(j)
-# for i in range(len(numArray)):
-#     lineplot(numArray[i], gainArray[i], "num", "gain", "Change gain")
 
 genProgramm = GP(sizeForest=10, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 
