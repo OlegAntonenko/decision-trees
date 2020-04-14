@@ -3,7 +3,7 @@ import random
 import matplotlib.pyplot as plt
 from c45 import C45
 from genprogram import GP
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 
 
 def split_data(data):
@@ -38,10 +38,11 @@ def lineplot(x_data, y_data, x_label="", y_label="", title=""):
     plt.show()
 
 
-tree = C45(maxDepth=4, split="random")
+tree = C45(maxDepth=4, split="best")
 tree.extract_names(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 tree.extract_data(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
-
+# gain = tree.gain()
+# print(gain)
 trainingSample, testSample = split_data(tree.get_data())
 
 # Count average accuracy tree
@@ -59,22 +60,25 @@ for i, j in zip(trainingSample, testSample):
     tree.preprocess_data(j)
     listAccuracy.append(tree.accuracy(j))
 
-    # Use sklearn
-    estimator = DecisionTreeClassifier(criterion="entropy", random_state=0, max_depth=4, splitter="random")
-    X_train = [x[:-1] for x in i]
-    Y_train = [y[-1] for y in i]
-    X_test = [x[:-1] for x in j]
-    Y_test = [y[-1] for y in j]
-    start = time.clock()
-    estimator.fit(X_train, Y_train)  # training decision tree
-    end = time.clock()
-    print("Time generate tree with sklearn " + str(num) + " : ", end - start, end="\n\n")
-    listAccuracySklearn.append(estimator.score(X_test, Y_test))  # accuracy tree
+    # # Use sklearn
+    # estimator = DecisionTreeClassifier(criterion="entropy", random_state=0, max_depth=4, splitter="random")
+    # X_train = [x[:-1] for x in i]
+    # Y_train = [y[-1] for y in i]
+    # X_test = [x[:-1] for x in j]
+    # Y_test = [y[-1] for y in j]
+    # start = time.clock()
+    # estimator.fit(X_train, Y_train)  # training decision tree
+    # plt.figure()
+    # plot_tree(estimator)
+    # plt.show()
+    # end = time.clock()
+    # print("Time generate tree with sklearn " + str(num) + " : ", end - start, end="\n\n")
+    # listAccuracySklearn.append(estimator.score(X_test, Y_test))  # accuracy tree
 
 averageAccuracy = sum(listAccuracy)/len(listAccuracy)
-averageAccuracySklearn = sum(listAccuracySklearn)/len(listAccuracySklearn)
+# averageAccuracySklearn = sum(listAccuracySklearn)/len(listAccuracySklearn)
 print("Average accuracy tree: ", round(averageAccuracy, 2))
-print("Average accuracy tree with sklearn: ", round(averageAccuracySklearn, 2))
+# print("Average accuracy tree with sklearn: ", round(averageAccuracySklearn, 2))
 
 genProgramm = GP(sizeForest=10, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 
@@ -82,6 +86,7 @@ genProgramm = GP(sizeForest=10, pathToData="C:\\Users\\Олег\\Documents\\Ди
 listAccuracy = []
 for i, j in zip(trainingSample, testSample):
     genProgramm.generate_random_forest(i)
-    listAccuracy.append(genProgramm.accuracy_forest(j))
-averageAccuracy = sum(listAccuracy)/len(listAccuracy)
-print("Average accuracy forest: ", averageAccuracy)
+    genProgramm.mutation_forest()
+    # listAccuracy.append(genProgramm.accuracy_forest(j))
+# averageAccuracy = sum(listAccuracy)/len(listAccuracy)
+# print("Average accuracy forest: ", averageAccuracy)

@@ -1,5 +1,4 @@
 from c45 import C45
-from usedata import UseData
 
 
 class GP:
@@ -8,12 +7,14 @@ class GP:
         self.forest = []
         self.pathToData = pathToData
         self.sizeForest = sizeForest
+        self.data = []
 
     def generate_random_forest(self, data):
         self.forest = []
+        self.data = data
         tree = C45(maxDepth=4, split="random")
         tree.extract_names(self.pathToData)
-        tree.set_data(data)
+        tree.set_data(self.data)
         for i in range(self.sizeForest):
             tree.generate_tree()
             self.forest.append(tree.get_tree())
@@ -41,8 +42,9 @@ class GP:
         return conformity / len(data)
 
     def mutation_forest(self):
-        tree = C45()
+        tree = C45(maxDepth=4, split="random")
         tree.extract_names(self.pathToData)
+        tree.set_data(self.data)
         for t in self.forest:
             tree.set_tree(t)
             print("before")

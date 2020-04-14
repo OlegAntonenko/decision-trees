@@ -90,7 +90,7 @@ class C45:
         self.tree = self.recursive_generate_tree(self.data, self.attributes)
 
     def recursive_generate_tree(self, curdata, curattributes, depth=1):
-        if len(curdata) == 0:
+        if len(curdata) == 0 or len(curdata) == 2:
             return Node(True, "Fail", None)  # fail
         elif self.all_same_class(curdata) is not False:
             return Node(True, self.all_same_class(curdata), None)  # return a node with that class
@@ -114,6 +114,8 @@ class C45:
         maxEnt = -math.inf
         best_attribute = -1
         best_threshold = None  # None for discrete attributes, threshold value for continuous attributes
+        if len(curAttributes)==1 and len(curData)==2:
+            print("")
         for attribute in curAttributes:
             indexOfAttribute = self.attributes.index(attribute)
             if self.is_attr_discrete(attribute):
@@ -158,6 +160,8 @@ class C45:
         maxEnt = -math.inf
         best_attribute = -1
         best_threshold = None  # None for discrete attributes, threshold value for continuous attributes
+        if len(curAttributes)==1 and len(curData)==2:
+            print("")
         for attribute in curAttributes:
             indexOfAttribute = self.attributes.index(attribute)
             if self.is_attr_discrete(attribute):
@@ -306,15 +310,56 @@ class C45:
         return conformity/len(data)
 
     def mutation(self):
-        self.mutation_check_node(self.tree)
+        self.mutation_check_node(self.tree, self.data, self.attributes)
 
-    def mutation_check_node(self, node):
+    def mutation_check_node(self, node, curData, Attributes, depth=1):
         if not node.isLeaf:
-            if random.random() <= 1/10:
-                attributes = copy.copy(self.attributes)
-                attributes.remove(node.label)
-                node.label = random.choice(attributes)
-            [self.mutation_check_node(nodeChild) for nodeChild in node.children]
+            curAttributes = copy.copy(Attributes)
+            if random.random() <= 0.1 and len(Attributes) > 1:
+                if len(curData) == 0:
+                    node = Node(True, "Fail", None)  # fail
+                elif self.all_same_class(curData) is not False:
+                    node = Node(True, self.all_same_class(curData), None)  # return a node with that class
+                elif self.maxDepth == depth:
+                    majclass = self.get_maj_class(curData)  # return a node with the majority class
+                    node = Node(True, majclass, None)
+                else:
+                    curAttributes.remove(node.label)
+                    if self.split == "best":
+                        (best, best_threshold, splitted) = self.split_attribute(curData, curAttributes)
+                    elif self.split == "random":
+                        (best, best_threshold, splitted) = self.split_attribute_random(curData, curAttributes)
+                    remainingAttributes = curAttributes[:]
+                    remainingAttributes.remove(best)
+                    remainingAttributes.append(node.label)
+                    depth = +1
+                    node.label = best
+                    node.threshold = best_threshold
+                    node.children = [self.recursive_generate_tree(subset, remainingAttributes, depth)
+                                     for subset in splitted]
+            else:
+                indexOfAttribute = self.attributes.index(node.label)
+                if self.is_attr_discrete(node.label):
+                    valuesForAttribute = self.attrValues[node.label]
+                    subsets = [[] for a in valuesForAttribute]
+                    for row in curData:
+                        for index in range(len(valuesForAttribute)):
+                            if row[indexOfAttribute] == valuesForAttribute[index]:
+                                subsets[index].append(row)
+                                break
+                else:
+                    less = []
+                    greater = []
+                    for row in curData:
+                        if row[indexOfAttribute] >= node.threshold:
+                            greater.append(row)
+                        else:
+                            less.append(row)
+                    subsets = [less, greater]
+                curAttributes.remove(node.label)
+                depth = +1
+                [self.mutation_check_node(nodeChild, subset, curAttributes, depth)
+                 for nodeChild, subset in zip(node.children, subsets)]
 
 
 class Node:
