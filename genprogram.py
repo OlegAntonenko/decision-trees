@@ -12,7 +12,7 @@ class GP:
     def generate_random_forest(self, data):
         self.forest = []
         self.data = data
-        tree = C45(maxDepth=4, split="random")
+        tree = C45(maxDepth=3, split="random")
         tree.extract_names(self.pathToData)
         tree.set_data(self.data)
         for i in range(self.sizeForest):
@@ -29,7 +29,8 @@ class GP:
         classes = tree.get_classes()
         countObj = [0 for i in classes]
         for i in arrayAnswer:
-            countObj[classes.index(i)] += 1
+            if i != "Fail":
+                countObj[classes.index(i)] += 1
         classObj = classes[countObj.index(max(countObj))]
         return classObj
 
@@ -42,14 +43,15 @@ class GP:
         return conformity / len(data)
 
     def mutation_forest(self):
-        tree = C45(maxDepth=4, split="random")
+        forest = []
+        tree = C45(maxDepth=3, split="best")
         tree.extract_names(self.pathToData)
         tree.set_data(self.data)
         for t in self.forest:
             tree.set_tree(t)
-            print("before")
-            tree.print_tree()
             tree.mutation()
-            print("after")
-            tree.print_tree()
-            print()
+            forest.append(tree.get_tree())
+        self.forest = forest[:]
+
+    def crossing_forest(self):
+        tree = C45()

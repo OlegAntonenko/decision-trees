@@ -90,7 +90,7 @@ class C45:
         self.tree = self.recursive_generate_tree(self.data, self.attributes)
 
     def recursive_generate_tree(self, curdata, curattributes, depth=1):
-        if len(curdata) == 0 or len(curdata) == 2:
+        if len(curdata) == 0 or self.uniformity(curdata, curattributes):
             return Node(True, "Fail", None)  # fail
         elif self.all_same_class(curdata) is not False:
             return Node(True, self.all_same_class(curdata), None)  # return a node with that class
@@ -114,8 +114,6 @@ class C45:
         maxEnt = -math.inf
         best_attribute = -1
         best_threshold = None  # None for discrete attributes, threshold value for continuous attributes
-        if len(curAttributes)==1 and len(curData)==2:
-            print("")
         for attribute in curAttributes:
             indexOfAttribute = self.attributes.index(attribute)
             if self.is_attr_discrete(attribute):
@@ -160,8 +158,6 @@ class C45:
         maxEnt = -math.inf
         best_attribute = -1
         best_threshold = None  # None for discrete attributes, threshold value for continuous attributes
-        if len(curAttributes)==1 and len(curData)==2:
-            print("")
         for attribute in curAttributes:
             indexOfAttribute = self.attributes.index(attribute)
             if self.is_attr_discrete(attribute):
@@ -197,8 +193,8 @@ class C45:
                 arrayGain.append(arrayGain[len(arrayGain) - 1] + maxEnt)
                 arrayThreshold.append(best_threshold)
         rnd = random.random() * arrayGain[-1]
-        for gainInd in range(1, len(arrayGain)):  # choose attribute with rnd
-            if arrayGain[gainInd - 1] < rnd <= arrayGain[gainInd]:
+        for gainInd in range(0, len(arrayGain)):  # choose attribute with rnd
+            if arrayGain[gainInd] < rnd <= arrayGain[gainInd + 1]:
                 best_attribute = curAttributes[gainInd - 1]
                 splitted = arraySubsets[gainInd - 1]
                 best_threshold = arrayThreshold[gainInd - 1]
@@ -251,6 +247,18 @@ class C45:
             freq[index] += 1
         maxInd = freq.index(max(freq))
         return self.classes[maxInd]
+
+    def uniformity(self, data, attributes):
+        count = 0
+        for attribute in attributes:
+            indexOfAttribute = self.attributes.index(attribute)
+            data.sort(key=lambda x: x[indexOfAttribute])
+            if data[0][indexOfAttribute] == data[len(data) - 1][indexOfAttribute]:
+                count += 1
+        if count == len(attributes):
+            return True
+        else:
+            return False
 
     def print_tree(self):
         self.print_node(self.tree)
@@ -315,8 +323,8 @@ class C45:
     def mutation_check_node(self, node, curData, Attributes, depth=1):
         if not node.isLeaf:
             curAttributes = copy.copy(Attributes)
-            if random.random() <= 0.1 and len(Attributes) > 1:
-                if len(curData) == 0:
+            if random.random() <= 0.5 and len(Attributes) > 1:
+                if len(curData) == 0 or len(curData) == 2:
                     node = Node(True, "Fail", None)  # fail
                 elif self.all_same_class(curData) is not False:
                     node = Node(True, self.all_same_class(curData), None)  # return a node with that class
