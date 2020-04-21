@@ -1,18 +1,25 @@
 from c45 import C45
+import math
+import random
 
 
 class GP:
 
-    def __init__(self, sizeForest, pathToData):
+    def __init__(self, sizeForest, pathToData, split="best", maxDepth=math.inf):
         self.forest = []
         self.pathToData = pathToData
         self.sizeForest = sizeForest
         self.data = []
+        self.split = split
+        self.maxDepth = maxDepth
+
+    # def bootstrap(self, data):
+    #
 
     def generate_random_forest(self, data):
         self.forest = []
         self.data = data
-        tree = C45(maxDepth=3, split="random")
+        tree = C45(maxDepth=self.maxDepth, split=self.split)
         tree.extract_names(self.pathToData)
         tree.set_data(self.data)
         for i in range(self.sizeForest):
@@ -44,7 +51,7 @@ class GP:
 
     def mutation_forest(self):
         forest = []
-        tree = C45(maxDepth=3, split="best")
+        tree = C45(maxDepth=self.maxDepth, split=self.split)
         tree.extract_names(self.pathToData)
         tree.set_data(self.data)
         for t in self.forest:
@@ -54,4 +61,59 @@ class GP:
         self.forest = forest[:]
 
     def crossing_forest(self):
-        tree = C45()
+        forest = []
+        while True:
+            listIndex = [i for i in range(len(self.forest))]
+            treeDad = self.forest.pop(random.choice(listIndex))
+
+            listIndex = [i for i in range(len(self.forest))]
+            treeMom = self.forest.pop(random.choice(listIndex))
+
+            # crossing
+            self.crossing(treeDad, treeMom)
+
+            forest.append(treeDad)
+            forest.append(treeMom)
+
+            if len(self.forest) == 0:
+                break
+        self.forest = forest[:]
+
+    def crossing(self, treeDad, treeMom):
+        addressesMom = self.get_addresses(treeMom)
+        addressesDad = self.get_addresses(treeDad)
+
+        addressCrossingMomToDad = random.choice(addressesMom)
+        addressCrossingMomToDad.crossing = True
+
+        addressCrossingDadToMom = random.choice(addressesDad)
+        addressCrossingDadToMom.crossing = True
+
+        self.change_address(treeMom, addressCrossingDadToMom)
+        self.change_address(treeDad, addressCrossingMomToDad)
+
+    def get_addresses(self, tree):
+        addresses = []
+        [self.get_address(child, addresses) for child in tree.children]
+        return addresses
+
+    def get_address(self, node, addresses):
+        if not node.isLeaf:
+            node.crossing = False
+            addresses.append(node)
+            [self.get_address(child, addresses) for child in node.children]
+
+    def change_address(self, node, address):
+        if not node.isLeaf:
+            for i in range(len(node.children)):
+                if node.children[i].crossing:
+                    node.children[i] = address
+                else:
+                    self.change_address(node.children[i], address)
+
+    def print_forest(self):
+        tree = C45(maxDepth=self.maxDepth, split=self.split)
+        for i in range(len(self.forest)):
+            tree.set_tree(self.forest[i])
+            print()
+            tree.print_tree()

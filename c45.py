@@ -89,14 +89,16 @@ class C45:
     def generate_tree(self):
         self.tree = self.recursive_generate_tree(self.data, self.attributes)
 
-    def recursive_generate_tree(self, curdata, curattributes, depth=1):
-        if len(curdata) == 0 or self.uniformity(curdata, curattributes):
+    def recursive_generate_tree(self, curdata, curattributes, depth=0):
+        if len(curdata) == 0:
             return Node(True, "Fail", None)  # fail
         elif self.all_same_class(curdata) is not False:
             return Node(True, self.all_same_class(curdata), None)  # return a node with that class
         elif len(curattributes) == 0 or self.maxDepth == depth:
             majclass = self.get_maj_class(curdata)  # return a node with the majority class
             return Node(True, majclass, None)
+        elif self.uniformity(curdata, curattributes):
+            return Node(True, "Fail", None)  # fail
         else:
             if self.split == "best":
                 (best, best_threshold, splitted) = self.split_attribute(curdata, curattributes)
@@ -155,7 +157,7 @@ class C45:
         arrayGain = [0]
         arrayThreshold = []
         splitted = []
-        maxEnt = -math.inf
+        maxEnt = 0  # -math.inf
         best_attribute = -1
         best_threshold = None  # None for discrete attributes, threshold value for continuous attributes
         for attribute in curAttributes:
@@ -193,12 +195,14 @@ class C45:
                 arrayGain.append(arrayGain[len(arrayGain) - 1] + maxEnt)
                 arrayThreshold.append(best_threshold)
         rnd = random.random() * arrayGain[-1]
-        for gainInd in range(0, len(arrayGain)):  # choose attribute with rnd
+        for gainInd in range(0, len(arrayGain)-1):  # choose attribute with rnd
             if arrayGain[gainInd] < rnd <= arrayGain[gainInd + 1]:
                 best_attribute = curAttributes[gainInd - 1]
                 splitted = arraySubsets[gainInd - 1]
                 best_threshold = arrayThreshold[gainInd - 1]
                 break
+        if best_attribute == -1:
+            best_attribute = curAttributes[0]
         return (best_attribute, best_threshold, splitted)
 
     def gain(self, unionSet, subsets):
@@ -320,7 +324,7 @@ class C45:
     def mutation(self):
         self.mutation_check_node(self.tree, self.data, self.attributes)
 
-    def mutation_check_node(self, node, curData, Attributes, depth=1):
+    def mutation_check_node(self, node, curData, Attributes, depth=0):
         if not node.isLeaf:
             curAttributes = copy.copy(Attributes)
             if random.random() <= 0.5 and len(Attributes) > 1:
@@ -372,8 +376,9 @@ class C45:
 
 class Node:
 
-    def __init__(self, isLeaf, label, threshold):
+    def __init__(self, isLeaf, label, threshold, crossing=False):
         self.label = label
         self.threshold = threshold
         self.isLeaf = isLeaf
         self.children = []
+        self.crossing = crossing

@@ -38,9 +38,9 @@ def lineplot(x_data, y_data, x_label="", y_label="", title=""):
     plt.show()
 
 
-tree = C45(maxDepth=3, split="best")
-tree.extract_names(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\titanic.dat")
-tree.extract_data(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\titanic.dat")
+tree = C45(maxDepth=4, split="best")
+tree.extract_names(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
+tree.extract_data(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 # gain = tree.gain()
 # print(gain)
 trainingSample, testSample = split_data(tree.get_data())
@@ -80,18 +80,15 @@ averageAccuracy = sum(listAccuracy)/len(listAccuracy)
 print("Average accuracy tree: ", averageAccuracy)
 # print("Average accuracy tree with sklearn: ", round(averageAccuracySklearn, 2))
 
-genProgramm = GP(sizeForest=10, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\titanic.dat")
+genProgramm = GP(sizeForest=2, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat", split="random",
+                 maxDepth=3)
 
-# testAccuracy = []
-# for z in range(10):
 # Count average accuracy forest
 listAccuracy = []
 for i, j in zip(trainingSample, testSample):
     genProgramm.generate_random_forest(i)
-    # for i in range(3):
-    # genProgramm.mutation_forest()
+    genProgramm.mutation_forest()
+    genProgramm.crossing_forest()
     listAccuracy.append(genProgramm.accuracy_forest(j))
 averageAccuracy = sum(listAccuracy) / len(listAccuracy)
-#     testAccuracy.append(round(averageAccuracy, 3))
-# print(sum(testAccuracy) / len(testAccuracy))
 print("Average accuracy forest: ", averageAccuracy)
