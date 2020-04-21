@@ -87,8 +87,11 @@ genProgramm = GP(sizeForest=2, pathToData="C:\\Users\\Олег\\Documents\\Ди�
 listAccuracy = []
 for i, j in zip(trainingSample, testSample):
     genProgramm.generate_random_forest(i)
-    genProgramm.mutation_forest()
-    genProgramm.crossing_forest()
+    genProgramm.print_forest()
+    # genProgramm.mutation_forest()
+    # genProgramm.crossing_forest()
+    genProgramm.tournament_selection_forest(j)
+    genProgramm.print_forest()
     listAccuracy.append(genProgramm.accuracy_forest(j))
 averageAccuracy = sum(listAccuracy) / len(listAccuracy)
 print("Average accuracy forest: ", averageAccuracy)

@@ -111,6 +111,27 @@ class GP:
                 else:
                     self.change_address(node.children[i], address)
 
+    def tournament_selection_forest(self, dataTest):
+        forest = []
+        tree = C45(maxDepth=self.maxDepth, split=self.split)
+        tree.extract_names(self.pathToData)
+        while True:
+            best_accuracy = -1
+            for i in range(2):
+                listIndex = [i for i in range(len(self.forest))]
+                structure_tree = self.forest.pop(random.choice(listIndex))
+                tree.set_tree(structure_tree)
+                accuracy = tree.accuracy(dataTest)
+                if accuracy > best_accuracy:
+                    best_accuracy = accuracy
+                    best_tree = structure_tree
+
+            forest.append(best_tree)
+
+            if len(self.forest) == 0:
+                break
+        self.forest = forest[:]
+
     def print_forest(self):
         tree = C45(maxDepth=self.maxDepth, split=self.split)
         for i in range(len(self.forest)):
