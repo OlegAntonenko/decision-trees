@@ -2,6 +2,27 @@ import math
 import copy
 import random
 
+import matplotlib.pyplot as plt
+
+def lineplot(x_data, y_data, x_label="", y_label="", title=""):
+    # Create the plot object
+    _, ax = plt.subplots(2, 2, figsize=(12, 7))
+
+
+
+    # Plot the best fit line, set the linewidth (lw), color and
+    # transparency (alpha) of the line
+    ax[0, 0].plot(x_data[0], y_data[0], lw=2, color='#539caf', alpha=1)
+    ax[0, 1].plot(x_data[1], y_data[1], lw=2, color='red', alpha=1)
+    ax[1, 0].plot(x_data[2], y_data[2], lw=2, color='orange', alpha=1)
+    ax[1, 1].plot(x_data[3], y_data[3], lw=2, color='black', alpha=1)
+
+    # Label the axes and provide a title
+    # ax.set_title(title)
+    # ax.set_xlabel(x_label)
+    # ax.set_ylabel(y_label)
+
+    plt.show()
 
 class C45:
 
@@ -94,7 +115,7 @@ class C45:
             return Node(True, "Fail", None)  # fail
         elif self.all_same_class(curdata) is not False:
             return Node(True, self.all_same_class(curdata), None)  # return a node with that class
-        elif len(curattributes) == 0 or self.maxDepth == depth:
+        elif len(curattributes) == 0 or self.maxDepth == depth: # or len(curdata) <= 3:
             majclass = self.get_maj_class(curdata)  # return a node with the majority class
             return Node(True, majclass, None)
         elif self.uniformity(curdata, curattributes):
@@ -104,11 +125,11 @@ class C45:
                 (best, best_threshold, splitted) = self.split_attribute(curdata, curattributes)
             elif self.split == "random":
                 (best, best_threshold, splitted) = self.split_attribute_random(curdata, curattributes)
-            remainingAttributes = curattributes[:]
-            remainingAttributes.remove(best)
+            # remainingAttributes = curattributes[:]
+            # remainingAttributes.remove(best) # use attributes once
             node = Node(False, best, best_threshold)
             depth += 1
-            node.children = [self.recursive_generate_tree(subset, remainingAttributes, depth) for subset in splitted]
+            node.children = [self.recursive_generate_tree(subset, curattributes, depth) for subset in splitted]
             return node
 
     def split_attribute(self, curData, curAttributes):
@@ -203,6 +224,8 @@ class C45:
                 break
         if best_attribute == -1:
             best_attribute = curAttributes[0]
+        # if best_threshold == None:
+        #     print()
         return (best_attribute, best_threshold, splitted)
 
     def gain(self, unionSet, subsets):
@@ -328,11 +351,11 @@ class C45:
         if not node.isLeaf:
             curAttributes = copy.copy(Attributes)
             if random.random() <= 0.5 and len(Attributes) > 1:
-                if len(curData) == 0 or len(curData) == 2:
+                if len(curData) == 0:
                     node = Node(True, "Fail", None)  # fail
                 elif self.all_same_class(curData) is not False:
                     node = Node(True, self.all_same_class(curData), None)  # return a node with that class
-                elif self.maxDepth == depth:
+                elif self.maxDepth == depth:  # or len(curData) <= 3:
                     majclass = self.get_maj_class(curData)  # return a node with the majority class
                     node = Node(True, majclass, None)
                 else:
@@ -342,7 +365,7 @@ class C45:
                     elif self.split == "random":
                         (best, best_threshold, splitted) = self.split_attribute_random(curData, curAttributes)
                     remainingAttributes = curAttributes[:]
-                    remainingAttributes.remove(best)
+                    # remainingAttributes.remove(best)
                     remainingAttributes.append(node.label)
                     depth = +1
                     node.label = best
@@ -368,10 +391,10 @@ class C45:
                         else:
                             less.append(row)
                     subsets = [less, greater]
-                curAttributes.remove(node.label)
+                # curAttributes.remove(node.label)
                 depth = +1
                 [self.mutation_check_node(nodeChild, subset, curAttributes, depth)
-                 for nodeChild, subset in zip(node.children, subsets)]
+                 for nodeChild, subset in zip(node.children, subsets) if len(subset) != 0]
 
 
 class Node:

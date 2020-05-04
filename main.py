@@ -41,57 +41,67 @@ def lineplot(x_data, y_data, x_label="", y_label="", title=""):
 tree = C45(maxDepth=4, split="best")
 tree.extract_names(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
 tree.extract_data(pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat")
-# gain = tree.gain()
-# print(gain)
 trainingSample, testSample = split_data(tree.get_data())
 
 # Count average accuracy tree
-listAccuracy = []
-listAccuracySklearn = []
-num = 0
-for i, j in zip(trainingSample, testSample):
-    num += 1
-    tree.set_data(i)
-    start = time.clock()
-    tree.generate_tree()
-    end = time.clock()
-    print("Time generate tree " + str(num) + " : ", end - start)
-    tree.print_tree()
-    tree.preprocess_data(j)
-    listAccuracy.append(tree.accuracy(j))
-
-    # # Use sklearn
-    # estimator = DecisionTreeClassifier(criterion="entropy", random_state=0, max_depth=4, splitter="random")
-    # X_train = [x[:-1] for x in i]
-    # Y_train = [y[-1] for y in i]
-    # X_test = [x[:-1] for x in j]
-    # Y_test = [y[-1] for y in j]
-    # start = time.clock()
-    # estimator.fit(X_train, Y_train)  # training decision tree
-    # plt.figure()
-    # plot_tree(estimator)
-    # plt.show()
-    # end = time.clock()
-    # print("Time generate tree with sklearn " + str(num) + " : ", end - start, end="\n\n")
-    # listAccuracySklearn.append(estimator.score(X_test, Y_test))  # accuracy tree
-
-averageAccuracy = sum(listAccuracy)/len(listAccuracy)
+# listAccuracy = []
+# listAccuracySklearn = []
+# num = 0
+# for i, j in zip(trainingSample, testSample):
+#     num += 1
+#     tree.set_data(i)
+#     start = time.clock()
+#     tree.generate_tree()
+#     end = time.clock()
+#     print("Time generate tree " + str(num) + " : ", end - start)
+#     tree.print_tree()
+#     tree.preprocess_data(j)
+#     listAccuracy.append(tree.accuracy(j))
+#
+#     # # Use sklearn
+#     estimator = DecisionTreeClassifier(criterion="entropy", random_state=0, max_depth=4, splitter="random")
+#     X_train = [x[:-1] for x in i]
+#     Y_train = [y[-1] for y in i]
+#     X_test = [x[:-1] for x in j]
+#     Y_test = [y[-1] for y in j]
+#     start = time.clock()
+#     estimator.fit(X_train, Y_train)  # training decision tree
+#     plt.figure(figsize=(10,7))
+#     plot_tree(estimator)
+#     plt.show()
+#     end = time.clock()
+#     print("Time generate tree with sklearn " + str(num) + " : ", end - start, end="\n\n")
+#     listAccuracySklearn.append(estimator.score(X_test, Y_test))  # accuracy tree
+    
+# averageAccuracy = sum(listAccuracy)/len(listAccuracy)
 # averageAccuracySklearn = sum(listAccuracySklearn)/len(listAccuracySklearn)
-print("Average accuracy tree: ", averageAccuracy)
+# print("Average accuracy tree: ", averageAccuracy)
 # print("Average accuracy tree with sklearn: ", round(averageAccuracySklearn, 2))
 
-genProgramm = GP(sizeForest=2, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat", split="random",
-                 maxDepth=3)
+# genProgramm = GP(sizeForest=10, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat", split="random",
+#                  maxDepth=4)
 
 # Count average accuracy forest
-listAccuracy = []
+listAccuracyGenTrees = []
+listAccuracyForest = []
+sizePopulation = 20
 for i, j in zip(trainingSample, testSample):
-    genProgramm.generate_random_forest(i)
-    genProgramm.print_forest()
-    # genProgramm.mutation_forest()
-    # genProgramm.crossing_forest()
-    genProgramm.tournament_selection_forest(j)
-    genProgramm.print_forest()
-    listAccuracy.append(genProgramm.accuracy_forest(j))
-averageAccuracy = sum(listAccuracy) / len(listAccuracy)
-print("Average accuracy forest: ", averageAccuracy)
+    genProgramm = GP(sizeForest=20, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat", train_data=i, test_data=j,
+                     split="best", maxDepth=4)
+    genProgramm.generate_random_forest()
+    listAccuracyForest.append(genProgramm.accuracy_forest())
+    num = 0
+    while True:
+        if num == sizePopulation:
+            break
+        genProgramm.tournament_selection_forest()
+        genProgramm.crossing_forest()
+        genProgramm.mutation_forest()
+        genProgramm.fitness_function()
+        num += 1
+    listAccuracyGenTrees.append(genProgramm.accuracy_forest())
+genProgramm.print_forest()
+averageAccuracyForest = sum(listAccuracyForest) / len(listAccuracyForest)
+print("Average accuracy forest: ", averageAccuracyForest)
+averageAccuracyGenTrees = sum(listAccuracyGenTrees) / len(listAccuracyGenTrees)
+print("Average accuracy forest genetic trees: ", averageAccuracyGenTrees)

@@ -1,30 +1,50 @@
-from c45 import C45
+from c45 import C45, Node
 import math
 import random
 
 
 class GP:
 
-    def __init__(self, sizeForest, pathToData, split="best", maxDepth=math.inf):
+    def __init__(self, sizeForest, pathToData, train_data, test_data, split="best", maxDepth=math.inf):
         self.forest = []
+        self.forest_child = []
         self.pathToData = pathToData
         self.sizeForest = sizeForest
-        self.data = []
         self.split = split
         self.maxDepth = maxDepth
+        self.train_data = train_data
+        self.test_data = test_data
 
-    # def bootstrap(self, data):
-    #
+    def bootstrap(self):
+        bootstrap_data = []
+        for i in range(len(self.train_data)):
+            bootstrap_data.append(random.choice(self.train_data))
+        return bootstrap_data
 
-    def generate_random_forest(self, data):
+    def generate_random_forest(self):
         self.forest = []
-        self.data = data
         tree = C45(maxDepth=self.maxDepth, split=self.split)
         tree.extract_names(self.pathToData)
-        tree.set_data(self.data)
         for i in range(self.sizeForest):
+            bootstrap_data = self.bootstrap()
+            tree.set_data(bootstrap_data)
             tree.generate_tree()
             self.forest.append(tree.get_tree())
+
+    def fitness_function(self):
+        self.forest += self.forest_child
+        tree = C45(maxDepth=self.maxDepth, split=self.split)
+        tree.extract_names(self.pathToData)
+        accuracy_list = []
+        for obj in self.forest:
+            tree.set_tree(obj)
+            accuracy_list.append(tree.accuracy(self.test_data))
+        quality_list = [[i, j] for i, j in zip(accuracy_list, self.forest)]
+        quality_list.sort(key=lambda x: x[0])
+        self.forest = [i[1] for i in quality_list]
+        self.forest = self.forest[len(self.forest_child)::]
+
+    # def quality_functional
 
     def use_forest(self, obj):
         arrayAnswer = []
@@ -41,33 +61,33 @@ class GP:
         classObj = classes[countObj.index(max(countObj))]
         return classObj
 
-    def accuracy_forest(self, data):
+    def accuracy_forest(self):
         conformity = 0
-        for i in data:
+        for i in self.test_data:
             classObj = self.use_forest(i[:-1])
             if classObj == i[-1]:
                 conformity += 1
-        return conformity / len(data)
+        return conformity / len(self.test_data)
 
     def mutation_forest(self):
         forest = []
         tree = C45(maxDepth=self.maxDepth, split=self.split)
         tree.extract_names(self.pathToData)
-        tree.set_data(self.data)
-        for t in self.forest:
+        tree.set_data(self.train_data)
+        for t in self.forest_child:
             tree.set_tree(t)
             tree.mutation()
             forest.append(tree.get_tree())
-        self.forest = forest[:]
+        self.forest_child = forest[:]
 
     def crossing_forest(self):
         forest = []
         while True:
-            listIndex = [i for i in range(len(self.forest))]
-            treeDad = self.forest.pop(random.choice(listIndex))
+            listIndex = [i for i in range(len(self.forest_child))]
+            treeDad = self.forest_child.pop(random.choice(listIndex))
 
-            listIndex = [i for i in range(len(self.forest))]
-            treeMom = self.forest.pop(random.choice(listIndex))
+            listIndex = [i for i in range(len(self.forest_child))]
+            treeMom = self.forest_child.pop(random.choice(listIndex))
 
             # crossing
             self.crossing(treeDad, treeMom)
@@ -75,9 +95,9 @@ class GP:
             forest.append(treeDad)
             forest.append(treeMom)
 
-            if len(self.forest) == 0:
+            if len(self.forest_child) <= 1:
                 break
-        self.forest = forest[:]
+        self.forest_child = forest[:]
 
     def crossing(self, treeDad, treeMom):
         addressesMom = self.get_addresses(treeMom)
@@ -111,26 +131,38 @@ class GP:
                 else:
                     self.change_address(node.children[i], address)
 
-    def tournament_selection_forest(self, dataTest):
-        forest = []
+    def tournament_selection_forest(self):
+        self.forest_child = []
         tree = C45(maxDepth=self.maxDepth, split=self.split)
         tree.extract_names(self.pathToData)
         while True:
             best_accuracy = -1
             for i in range(2):
                 listIndex = [i for i in range(len(self.forest))]
-                structure_tree = self.forest.pop(random.choice(listIndex))
+                structure_tree = self.forest[random.choice(listIndex)]
                 tree.set_tree(structure_tree)
-                accuracy = tree.accuracy(dataTest)
+                accuracy = tree.accuracy(self.test_data)
                 if accuracy > best_accuracy:
                     best_accuracy = accuracy
                     best_tree = structure_tree
 
-            forest.append(best_tree)
+            self.forest_child.append(self.copy_tree(best_tree))
 
-            if len(self.forest) == 0:
+            if len(self.forest) == len(self.forest_child):
                 break
-        self.forest = forest[:]
+        # self.forest = forest[:]
+
+    def copy_tree(self, tree):
+        copy_tree = self.copy_node(tree)
+        return copy_tree
+
+    def copy_node(self, node):
+        if node.isLeaf is False:
+            node_copy = Node(node.isLeaf, node.label, node.threshold)
+            node_copy.children = [self.copy_node(i) for i in node.children]
+            return node_copy
+        else:
+            return Node(node.isLeaf, node.label, node.threshold)
 
     def print_forest(self):
         tree = C45(maxDepth=self.maxDepth, split=self.split)
