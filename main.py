@@ -84,10 +84,10 @@ trainingSample, testSample = split_data(tree.get_data())
 # Count average accuracy forest
 listAccuracyGenTrees = []
 listAccuracyForest = []
-sizePopulation = 20
+sizePopulation = 10
 for i, j in zip(trainingSample, testSample):
-    genProgramm = GP(sizeForest=20, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat", train_data=i, test_data=j,
-                     split="best", maxDepth=4)
+    genProgramm = GP(sizeForest=10, pathToData="C:\\Users\\Олег\\Documents\\Диплом\\data\\iris.dat", train_data=i, test_data=j,
+                     split="best", maxDepth=4, choice_quality="accuracy")
     genProgramm.generate_random_forest()
     listAccuracyForest.append(genProgramm.accuracy_forest())
     num = 0

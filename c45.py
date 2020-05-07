@@ -24,6 +24,7 @@ def lineplot(x_data, y_data, x_label="", y_label="", title=""):
 
     plt.show()
 
+
 class C45:
 
     def __init__(self, maxDepth=math.inf, split="best"):
@@ -37,9 +38,11 @@ class C45:
         self.gainArr = []
         self.maxDepth = maxDepth
         self.split = split
+        self.depth = -1
 
     def set_tree(self, tree):
         self.tree = tree
+        self.depth = tree.depth
 
     def get_tree(self):
         return self.tree
@@ -56,6 +59,9 @@ class C45:
 
     def get_data(self):
         return self.data
+
+    def get_depth(self):
+        return self.depth
 
     def extract_names(self, pathToData):
         self.pathToData = pathToData
@@ -109,6 +115,7 @@ class C45:
 
     def generate_tree(self):
         self.tree = self.recursive_generate_tree(self.data, self.attributes)
+        self.tree.depth = self.depth
 
     def recursive_generate_tree(self, curdata, curattributes, depth=0):
         if len(curdata) == 0:
@@ -127,8 +134,12 @@ class C45:
                 (best, best_threshold, splitted) = self.split_attribute_random(curdata, curattributes)
             # remainingAttributes = curattributes[:]
             # remainingAttributes.remove(best) # use attributes once
+            if best == -1:
+                raise ValueError("best = -1")
             node = Node(False, best, best_threshold)
             depth += 1
+            if depth > self.depth:
+                self.depth = depth
             node.children = [self.recursive_generate_tree(subset, curattributes, depth) for subset in splitted]
             return node
 
@@ -351,6 +362,7 @@ class C45:
         if not node.isLeaf:
             curAttributes = copy.copy(Attributes)
             if random.random() <= 0.5 and len(Attributes) > 1:
+                curAttributes.remove(node.label)
                 if len(curData) == 0:
                     node = Node(True, "Fail", None)  # fail
                 elif self.all_same_class(curData) is not False:
@@ -358,8 +370,9 @@ class C45:
                 elif self.maxDepth == depth:  # or len(curData) <= 3:
                     majclass = self.get_maj_class(curData)  # return a node with the majority class
                     node = Node(True, majclass, None)
+                elif self.uniformity(curData, curAttributes):
+                    return Node(True, "Fail", None)  # fail
                 else:
-                    curAttributes.remove(node.label)
                     if self.split == "best":
                         (best, best_threshold, splitted) = self.split_attribute(curData, curAttributes)
                     elif self.split == "random":
@@ -367,6 +380,8 @@ class C45:
                     remainingAttributes = curAttributes[:]
                     # remainingAttributes.remove(best)
                     remainingAttributes.append(node.label)
+                    if best == -1:
+                        raise ValueError("best = -1")
                     depth = +1
                     node.label = best
                     node.threshold = best_threshold
@@ -399,9 +414,10 @@ class C45:
 
 class Node:
 
-    def __init__(self, isLeaf, label, threshold, crossing=False):
+    def __init__(self, isLeaf, label, threshold, crossing=False, depth=False):
         self.label = label
         self.threshold = threshold
         self.isLeaf = isLeaf
         self.children = []
         self.crossing = crossing
+        self.depth = depth

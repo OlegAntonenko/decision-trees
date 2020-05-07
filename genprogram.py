@@ -5,7 +5,8 @@ import random
 
 class GP:
 
-    def __init__(self, sizeForest, pathToData, train_data, test_data, split="best", maxDepth=math.inf):
+    def __init__(self, sizeForest, pathToData, train_data, test_data, split="best", maxDepth=math.inf,
+                 choice_quality="accuracy"):
         self.forest = []
         self.forest_child = []
         self.pathToData = pathToData
@@ -14,6 +15,7 @@ class GP:
         self.maxDepth = maxDepth
         self.train_data = train_data
         self.test_data = test_data
+        self.choice_quality = choice_quality
 
     def bootstrap(self):
         bootstrap_data = []
@@ -38,13 +40,22 @@ class GP:
         accuracy_list = []
         for obj in self.forest:
             tree.set_tree(obj)
-            accuracy_list.append(tree.accuracy(self.test_data))
+            if tree.depth == False:
+                raise ValueError("depth = False")
+            if "accuracy" == self.choice_quality:
+                accuracy_list.append(tree.accuracy(self.test_data))
+            elif "depth" == self.choice_quality:
+                accuracy_list.append(self.quality_functional(tree.accuracy(self.train_data), tree.get_depth()))
+            else:
+                raise NameError("self.choice_quality")
         quality_list = [[i, j] for i, j in zip(accuracy_list, self.forest)]
         quality_list.sort(key=lambda x: x[0])
         self.forest = [i[1] for i in quality_list]
         self.forest = self.forest[len(self.forest_child)::]
 
-    # def quality_functional
+    def quality_functional(self, accuracy, depth):
+        fitness = 100*accuracy- depth
+        return fitness
 
     def use_forest(self, obj):
         arrayAnswer = []
@@ -75,6 +86,8 @@ class GP:
         tree.extract_names(self.pathToData)
         tree.set_data(self.train_data)
         for t in self.forest_child:
+            if tree.depth == False:
+                raise ValueError("depth = False")
             tree.set_tree(t)
             tree.mutation()
             forest.append(tree.get_tree())
@@ -158,7 +171,7 @@ class GP:
 
     def copy_node(self, node):
         if node.isLeaf is False:
-            node_copy = Node(node.isLeaf, node.label, node.threshold)
+            node_copy = Node(node.isLeaf, node.label, node.threshold, depth=node.depth)
             node_copy.children = [self.copy_node(i) for i in node.children]
             return node_copy
         else:
