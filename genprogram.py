@@ -5,8 +5,7 @@ import random
 
 class GP:
 
-    def __init__(self, sizeForest, pathToData, train_data, test_data, split="best", maxDepth=math.inf,
-                 choice_quality="accuracy"):
+    def __init__(self, sizeForest, pathToData, train_data, test_data, split="best", maxDepth=math.inf, alpha=0):
         self.forest = []
         self.forest_child = []
         self.pathToData = pathToData
@@ -15,7 +14,19 @@ class GP:
         self.maxDepth = maxDepth
         self.train_data = train_data
         self.test_data = test_data
-        self.choice_quality = choice_quality
+        self.alpha = alpha
+
+    def set_split(self, split):
+        self.split = split
+
+    def get_split(self):
+        return self.split
+
+    def set_alpha(self, alpha):
+        self.alpha = alpha
+
+    def get_alpha(self):
+        return self.alpha
 
     def bootstrap(self):
         bootstrap_data = []
@@ -42,19 +53,15 @@ class GP:
             tree.set_tree(obj)
             if tree.depth == False:
                 raise ValueError("depth = False")
-            if "accuracy" == self.choice_quality:
-                accuracy_list.append(tree.accuracy(self.test_data))
-            elif "depth" == self.choice_quality:
-                accuracy_list.append(self.quality_functional(tree.accuracy(self.train_data), tree.get_depth()))
-            else:
-                raise NameError("self.choice_quality")
+            # accuracy_list.append(tree.accuracy(self.test_data))
+            accuracy_list.append(self.quality_functional(tree.accuracy(self.test_data), tree.get_depth(), self.alpha))
         quality_list = [[i, j] for i, j in zip(accuracy_list, self.forest)]
         quality_list.sort(key=lambda x: x[0])
         self.forest = [i[1] for i in quality_list]
         self.forest = self.forest[len(self.forest_child)::]
 
-    def quality_functional(self, accuracy, depth):
-        fitness = 100*accuracy- depth
+    def quality_functional(self, accuracy, depth, alpha):
+        fitness = accuracy - alpha*depth
         return fitness
 
     def use_forest(self, obj):

@@ -1,5 +1,4 @@
 import numpy as np
-# from ranking import Ranking, FRACTIONAL
 
 
 def MannWhitneyU(Sample1,Sample2):        
@@ -24,14 +23,11 @@ def MannWhitneyU(Sample1,Sample2):
     Z2 = (U2 - Umean)/Ucorr2
     if(Z1 <= Z2):
         if(Z1 < -2.58):
-            #print("worse")
-            return -1
+            return "worse"
     else:
-        if(Z2 < -2.58):   
-            #print("better")
-            return 1
-    #print("equal")
-    return 0
+        if(Z2 < -2.58):
+            return "better"
+    return "equal"
 
 
 def get_fract_ranks_and_groups(data):
@@ -67,8 +63,8 @@ def get_fract_ranks_and_groups(data):
         index_rank[sort_index[i]] = new_rank_inv   
     return index_rank, groups
 
-Sample1 = np.random.normal(0,0.1,10)
-Sample2 = np.random.normal(1,0.1,10)
-print(Sample1)
-print(Sample2)
-MannWhitneyU(Sample1,Sample2)
+# Sample1 = np.random.normal(0,0.1,10)
+# Sample2 = np.random.normal(1,0.1,10)
+# print(Sample1)
+# print(Sample2)
+# MannWhitneyU(Sample1,Sample2)

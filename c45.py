@@ -122,7 +122,7 @@ class C45:
             return Node(True, "Fail", None)  # fail
         elif self.all_same_class(curdata) is not False:
             return Node(True, self.all_same_class(curdata), None)  # return a node with that class
-        elif len(curattributes) == 0 or self.maxDepth == depth: # or len(curdata) <= 3:
+        elif len(curattributes) == 0 or self.maxDepth == depth or len(curdata) <= 5:
             majclass = self.get_maj_class(curdata)  # return a node with the majority class
             return Node(True, majclass, None)
         elif self.uniformity(curdata, curattributes):
@@ -144,6 +144,8 @@ class C45:
             return node
 
     def split_attribute(self, curData, curAttributes):
+        check = False
+
         splitted = []
         maxEnt = -math.inf
         best_attribute = -1
@@ -167,7 +169,9 @@ class C45:
             else:
                 curData.sort(key=lambda x: x[indexOfAttribute])
                 for j in range(0, len(curData)-1):
-                    if curData[j][indexOfAttribute] != curData[j + 1][indexOfAttribute]:
+                    if curData[j][indexOfAttribute] != curData[j + 1][indexOfAttribute] and curData[j][-1] != curData[j + 1][-1]:
+                        check = True
+
                         threshold = (curData[j][indexOfAttribute] + curData[j + 1][indexOfAttribute]) / 2
                         less = []
                         greater = []
@@ -182,7 +186,31 @@ class C45:
                             maxEnt = e
                             best_attribute = attribute
                             best_threshold = threshold
-        return (best_attribute, best_threshold, splitted)
+        if best_attribute == -1:
+            if check:
+                raise ValueError("best = -1")
+            else:
+                for attribute in curAttributes:
+                    indexOfAttribute = self.attributes.index(attribute)
+                    curData.sort(key=lambda x: x[indexOfAttribute])
+                    for j in range(0, len(curData) - 1):
+                        if curData[j][indexOfAttribute] != curData[j + 1][indexOfAttribute]:
+                            threshold = (curData[j][indexOfAttribute] + curData[j + 1][indexOfAttribute]) / 2
+                            less = []
+                            greater = []
+                            for row in curData:
+                                if row[indexOfAttribute] > threshold:
+                                    greater.append(row)
+                                else:
+                                    less.append(row)
+                            e = self.gain(curData, [less, greater])
+                            if e >= maxEnt:
+                                splitted = [less, greater]
+                                maxEnt = e
+                                best_attribute = attribute
+                                best_threshold = threshold
+
+        return best_attribute, best_threshold, splitted
 
     def split_attribute_random(self, curData, curAttributes):
         arraySubsets = []
@@ -229,15 +257,13 @@ class C45:
         rnd = random.random() * arrayGain[-1]
         for gainInd in range(0, len(arrayGain)-1):  # choose attribute with rnd
             if arrayGain[gainInd] < rnd <= arrayGain[gainInd + 1]:
-                best_attribute = curAttributes[gainInd - 1]
-                splitted = arraySubsets[gainInd - 1]
-                best_threshold = arrayThreshold[gainInd - 1]
+                best_attribute = curAttributes[gainInd]
+                splitted = arraySubsets[gainInd]
+                best_threshold = arrayThreshold[gainInd]
                 break
-        if best_attribute == -1:
-            best_attribute = curAttributes[0]
-        # if best_threshold == None:
-        #     print()
-        return (best_attribute, best_threshold, splitted)
+        if best_attribute == -1 or best_threshold == None:
+            raise ValueError("best = -1")
+        return best_attribute, best_threshold, splitted
 
     def gain(self, unionSet, subsets):
         S = len(unionSet)
@@ -367,7 +393,7 @@ class C45:
                     node = Node(True, "Fail", None)  # fail
                 elif self.all_same_class(curData) is not False:
                     node = Node(True, self.all_same_class(curData), None)  # return a node with that class
-                elif self.maxDepth == depth:  # or len(curData) <= 3:
+                elif self.maxDepth == depth or len(curData) <= 5:
                     majclass = self.get_maj_class(curData)  # return a node with the majority class
                     node = Node(True, majclass, None)
                 elif self.uniformity(curData, curAttributes):
