@@ -135,7 +135,7 @@ class C45:
             # remainingAttributes = curattributes[:]
             # remainingAttributes.remove(best) # use attributes once
             if best == -1:
-                raise ValueError("best = -1")
+                return Node(True, "Fail", None)  # fail
             node = Node(False, best, best_threshold)
             depth += 1
             if depth > self.depth:
@@ -186,6 +186,7 @@ class C45:
                             maxEnt = e
                             best_attribute = attribute
                             best_threshold = threshold
+
         if best_attribute == -1:
             if check:
                 raise ValueError("best = -1")
@@ -210,9 +211,14 @@ class C45:
                                 best_attribute = attribute
                                 best_threshold = threshold
 
+        # if best_attribute == -1:
+        #     raise ValueError("xxx")
+
         return best_attribute, best_threshold, splitted
 
     def split_attribute_random(self, curData, curAttributes):
+        check = False
+
         arraySubsets = []
         arrayGain = [0]
         arrayThreshold = []
@@ -237,7 +243,9 @@ class C45:
             else:
                 curData.sort(key=lambda x: x[indexOfAttribute])
                 for j in range(0, len(curData)-1):
-                    if curData[j][indexOfAttribute] != curData[j + 1][indexOfAttribute]:
+                    if curData[j][indexOfAttribute] != curData[j + 1][indexOfAttribute] and curData[j][-1] != curData[j + 1][-1]:
+                        check = True
+
                         threshold = (curData[j][indexOfAttribute] + curData[j + 1][indexOfAttribute]) / 2
                         less = []
                         greater = []
@@ -251,9 +259,42 @@ class C45:
                             splitted = [less, greater]
                             maxEnt = e
                             best_threshold = threshold
-                arraySubsets.append(splitted)
-                arrayGain.append(arrayGain[len(arrayGain) - 1] + maxEnt)
-                arrayThreshold.append(best_threshold)
+                if splitted != []:
+                    arraySubsets.append(splitted)
+                    arrayGain.append(arrayGain[len(arrayGain) - 1] + maxEnt)
+                    arrayThreshold.append(best_threshold)
+
+        if len(arrayGain) == 0:
+            if check:
+                raise ValueError("best = -1")
+            else:
+                for attribute in curAttributes:
+                    indexOfAttribute = self.attributes.index(attribute)
+                    curData.sort(key=lambda x: x[indexOfAttribute])
+                    for j in range(0, len(curData) - 1):
+                        if curData[j][indexOfAttribute] != curData[j + 1][indexOfAttribute]:
+                            check = True
+
+                            threshold = (curData[j][indexOfAttribute] + curData[j + 1][indexOfAttribute]) / 2
+                            less = []
+                            greater = []
+                            for row in curData:
+                                if (row[indexOfAttribute] > threshold):
+                                    greater.append(row)
+                                else:
+                                    less.append(row)
+                            e = self.gain(curData, [less, greater])
+                            if e >= maxEnt:
+                                splitted = [less, greater]
+                                maxEnt = e
+                                best_threshold = threshold
+                    if splitted != []:
+                        arraySubsets.append(splitted)
+                        arrayGain.append(arrayGain[len(arrayGain) - 1] + maxEnt)
+                        arrayThreshold.append(best_threshold)
+
+
+
         rnd = random.random() * arrayGain[-1]
         for gainInd in range(0, len(arrayGain)-1):  # choose attribute with rnd
             if arrayGain[gainInd] < rnd <= arrayGain[gainInd + 1]:
@@ -261,8 +302,10 @@ class C45:
                 splitted = arraySubsets[gainInd]
                 best_threshold = arrayThreshold[gainInd]
                 break
-        if best_attribute == -1 or best_threshold == None:
-            raise ValueError("best = -1")
+
+        # if best_attribute == -1:
+        #     raise ValueError("best = -1")
+
         return best_attribute, best_threshold, splitted
 
     def gain(self, unionSet, subsets):
@@ -312,6 +355,12 @@ class C45:
         maxInd = freq.index(max(freq))
         return self.classes[maxInd]
 
+    # def check(self, data, attributes):
+    #     count = self.uniformity(data, attributes) + self.check_equal(data, attributes)
+    #     if len(attributes) == count:
+    #         return True
+    #     return False
+    #
     def uniformity(self, data, attributes):
         count = 0
         for attribute in attributes:
@@ -319,10 +368,23 @@ class C45:
             data.sort(key=lambda x: x[indexOfAttribute])
             if data[0][indexOfAttribute] == data[len(data) - 1][indexOfAttribute]:
                 count += 1
-        if count == len(attributes):
+        if len(attributes) == count:
             return True
-        else:
-            return False
+        return False
+
+    # def check_equal(self, data, attributes):
+    #     count = 0
+    #     for attribute in attributes:
+    #         countEqual = [0 for i in self.attrValues[attribute]]
+    #         indexofAttribute = self.attributes.index(attribute)
+    #         for obj in data:
+    #             countEqual[self.attrValues[attribute].index(obj[indexofAttribute])] += 1
+    #         countEqual = [i for i in countEqual if i != 0]
+    #         if len(set(countEqual)) == 1:
+    #             count += 1
+    #     if len(attributes) == count:
+    #         return True
+    #     return False
 
     def print_tree(self):
         self.print_node(self.tree)
@@ -407,7 +469,7 @@ class C45:
                     # remainingAttributes.remove(best)
                     remainingAttributes.append(node.label)
                     if best == -1:
-                        raise ValueError("best = -1")
+                        return Node(True, "Fail", None)  # fail
                     depth = +1
                     node.label = best
                     node.threshold = best_threshold

@@ -1,7 +1,9 @@
 import numpy as np
 
 
-def MannWhitneyU(Sample1,Sample2):        
+def MannWhitneyU(Sample1, Sample2):
+    Sample1 = np.array(Sample1)
+    Sample2 = np.array(Sample2)
     NewSample = np.concatenate((Sample1, Sample2), axis=0)
     NewRanks, Groups = get_fract_ranks_and_groups(NewSample)
     SumRanks = 0
@@ -63,8 +65,8 @@ def get_fract_ranks_and_groups(data):
         index_rank[sort_index[i]] = new_rank_inv   
     return index_rank, groups
 
-# Sample1 = np.random.normal(0,0.1,10)
-# Sample2 = np.random.normal(1,0.1,10)
+# Sample1 = [0,0,0,0,0,0,0,0,0,0]
+# Sample2 = [1,1,1,1,1,1,1,1,1,1]
 # print(Sample1)
 # print(Sample2)
-# MannWhitneyU(Sample1,Sample2)
+# print(MannWhitneyU(Sample1,Sample2))
